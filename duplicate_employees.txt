@@ -1,0 +1,70 @@
+-- AB
+
+Input
+
+name	address		email		floor	resources
+A	Bangalore	A@gmail.com	1	CPU
+A	Bangalore	A1@gmail.com	1	CPU
+A	Bangalore	A2@gmail.com	2	DESKTOP
+B	Bangalore	B@gmail.com	2	DESKTOP
+B	Bangalore	B1@gmail.com	2	DESKTOP
+B	Bangalore	B2@gmail.com	1	MONITOR
+
+Output
+
+name	total_visits	Most Visited Floor	Resources Used
+A	3		1			CPU,DESKTOP
+B	3		2			DESKTOP,MONITOR
+
+
+create table entries ( 
+name varchar(20),
+address varchar(20),
+email varchar(20),
+floor int,
+resources varchar(10));
+
+insert into entries  values 
+('A','Bangalore','A@gmail.com',1,'CPU'),
+('A','Bangalore','A1@gmail.com',1,'CPU'),
+('A','Bangalore','A2@gmail.com',2,'DESKTOP'),
+('B','Bangalore','B@gmail.com',2,'DESKTOP'),
+('B','Bangalore','B1@gmail.com',2,'DESKTOP'),
+('B','Bangalore','B2@gmail.com',1,'MONITOR')
+
+Solution
+
+WITH floor_visits AS (
+SELECT 
+	name,floor,
+	COUNT(1) each_floor_visit,
+	RANK() OVER(PARTITION BY name ORDER BY COUNT(1) DESC) AS rn
+FROM entries
+GROUP BY name,floor
+), tot AS (
+SELECT 
+	name,
+	COUNT(name) AS total_visits
+FROM entries
+GROUP BY name
+), dis_res AS (
+SELECT 
+	DISTINCT name,resources
+FROM entries
+), all_res AS (
+SELECT 
+	name,STRING_AGG(resources,',') AS res
+FROM dis_res
+GROUP BY name
+)
+SELECT 
+	fv.name,
+	tot.total_visits,
+	fv.floor AS "Most Visited Floor",
+	ar.res AS "Resources Used"
+FROM floor_visits fv
+INNER JOIN tot
+ON fv.name=tot.name
+INNER JOIN all_res ar
+ON tot.name=ar.name
+WHERE rn=1

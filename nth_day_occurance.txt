@@ -1,0 +1,12 @@
+-- AB
+
+-- Find nth Occurance of Sunday from given date
+
+declare @today_date DATE;
+declare @n INT;
+set @today_date = '2023-09-04';
+set @n = 2;
+
+
+SELECT DATEADD(WEEK, @n-1,DATEADD(DAY, 8-DATEPART(WEEKDAY, @today_date), @today_date))
+;
