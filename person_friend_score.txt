@@ -1,0 +1,53 @@
+-- AB
+-- Find PersonID, Name, number of friends, sum of marks of person who have
+-- friends with total score greater than 100
+
+Input
+
+Person
+PersonID	Name	Email			Score
+1		Alice	alice2018@hotmail.com	88
+2		Bob	bob2018@hotmail.com	11
+3		Davis	davis2018@hotmail.com	27
+4		Tara	tara2018@hotmail.com	45
+5		John	john2018@hotmail.com	63
+
+Friend
+PersonID	FriendID
+1		2
+1		3
+2		1
+2		3
+3		5
+4		2
+4		3
+4		5
+
+
+Output
+
+PersonID	Name	number_of_friends	Friends_score
+2		Bob	2			115
+4		Tara	3			101
+
+
+Solution
+
+WITH all_scores AS (
+SELECT 
+	f.PersonID,
+	COUNT(1) AS number_of_friends, 
+	SUM(Score) AS Friends_score
+FROM friend f
+INNER JOIN person p
+ON f.FriendID = p.PersonID
+GROUP BY f.PersonID
+HAVING SUM(Score) > 100
+)
+SELECT
+	a.PersonID,p.Name,
+	a.number_of_friends,a.Friends_score
+FROM person p
+INNER JOIN all_scores a
+ON p.PersonID = a.PersonID;
+

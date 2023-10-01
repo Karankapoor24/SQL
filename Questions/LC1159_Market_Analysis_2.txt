@@ -1,0 +1,80 @@
+-- LC 1159
+
+--Write an SQL query to find for each user, whether the brand of the second item (by date) they sold is their favorite
+--brand. If a user sold less than two items, report the answer for that user as no.
+
+Input
+
+LC1159Users
+user_id	join_date	favorite_brand
+1	2019-01-01	Lenovo
+2	2019-02-09	Samsung
+3	2019-01-19	LG
+4	2019-05-21	HP
+
+LC1159Orders
+order_id	order_date	item_id	buyer_id	seller_id
+1		2019-08-01	4	1		2
+2		2019-08-02	2	1		3
+3		2019-08-03	3	2		3
+4		2019-08-04	1	4		2
+5		2019-08-04	1	3		4
+6		2019-08-05	2	2		4
+
+LC1159Items
+item_id	item_brand
+1	Samsung
+2	Lenovo
+3	LG
+4	HP
+
+Output
+user_id	Second_fav_brand
+1	No
+2	Yes
+3	Yes
+4	No
+
+
+create table LC1159Users(
+ user_id         int     ,
+ join_date       date    ,
+ favorite_brand  varchar(50));
+
+ create table LC1159Orders(
+ order_id       int     ,
+ order_date     date    ,
+ item_id        int     ,
+ buyer_id       int     ,
+ seller_id      int 
+ );
+
+ create table LC1159Items
+ (
+ item_id        int     ,
+ item_brand     varchar(50)
+ );
+
+
+ insert into LC1159Users values (1,'2019-01-01','Lenovo'),(2,'2019-02-09','Samsung'),(3,'2019-01-19','LG'),(4,'2019-05-21','HP');
+
+ insert into LC1159Items values (1,'Samsung'),(2,'Lenovo'),(3,'LG'),(4,'HP');
+
+ insert into LC1159Orders values (1,'2019-08-01',4,1,2),(2,'2019-08-02',2,1,3),(3,'2019-08-03',3,2,3),(4,'2019-08-04',1,4,2)
+ ,(5,'2019-08-04',1,3,4),(6,'2019-08-05',2,2,4);
+
+Solution
+WITH rnk_orders AS (
+SELECT 
+	*,
+	RANK() OVER(PARTITION BY seller_id ORDER BY order_date ) AS rn
+FROM LC1159Orders
+)
+SELECT
+	u.user_id,
+	CASE WHEN u.favorite_brand=i.item_brand THEN 'Yes' ELSE 'No' END AS Second_fav
+FROM LC1159Users u
+LEFT JOIN rnk_orders ro
+ON u.user_id=ro.seller_id AND ro.rn=2
+LEFT JOIN LC1159Items i
+ON ro.item_id=i.item_id

@@ -1,0 +1,21 @@
+-- AB
+
+-- Find the top 20% products which contribute to 80% of sales
+
+-- Input - Superstore Dataset
+
+WITH product_wise_sales AS (
+SELECT 
+	Product_ID,SUM(Sales) AS product_sales
+FROM orders
+GROUP BY Product_ID
+), calc_sales AS (
+SELECT
+	Product_ID,product_sales,
+	SUM(product_sales) OVER(ORDER BY product_sales DESC) AS running_sales,
+	0.8 * SUM(product_sales) OVER() AS total_sales
+FROM product_wise_sales
+)
+SELECT * FROM calc_sales
+WHERE running_sales <= total_sales
+;
