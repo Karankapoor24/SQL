@@ -1,0 +1,11 @@
+WITH cte_numbers AS (
+SELECT 1 AS num
+UNION ALL
+SELECT 
+	num+1
+FROM cte_numbers
+WHERE num < 6
+)
+SELECT
+	num
+FROM cte_numbers

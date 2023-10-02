@@ -1,0 +1,52 @@
+--LC1384
+--Write an SQL query to report the Total sales amount of each item for each year, with corresponding product name, 
+--product_id, product_name and report_year.
+
+Input
+product_id	period_start	period_end	average_daily_sales
+1		2019-01-25	2019-02-28	100
+2		2018-12-01	2020-01-01	10
+3		2019-12-01	2020-01-31	1
+
+Output
+product_id	report_year	total_amount
+1		2019		3500
+2		2018		310
+2		2019		3650
+2		2020		10
+3		2019		31
+3		2020		31
+
+create table LC1384 (
+product_id int,
+period_start date,
+period_end date,
+average_daily_sales int
+);
+
+insert into LC1384 values
+(1,'2019-01-25','2019-02-28',100),
+(2,'2018-12-01','2020-01-01',10),
+(3,'2019-12-01','2020-01-31',1);
+
+Solution
+
+WITH all_dates AS (
+SELECT
+	MIN(period_start) AS dates, MAX(period_end) AS max_date
+FROM LC1384
+UNION ALL
+SELECT
+	DATEADD(DAY,1,dates), max_date
+FROM all_dates
+WHERE dates <= max_date
+)
+SELECT 
+	product_id,year(dates) AS report_year,
+	SUM(average_daily_sales) AS total_amount
+FROM all_dates
+INNER JOIN LC1384
+ON dates BETWEEN period_start AND period_end
+GROUP BY product_id,year(dates)
+ORDER BY product_id,year(dates)
+OPTION (maxrecursion 1000)
