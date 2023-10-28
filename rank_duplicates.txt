@@ -1,0 +1,65 @@
+-- AB
+-- Rank only the duplicate records. Uniqur Records should have null value
+
+Input
+
+id
+a
+a
+b
+c
+c
+c
+d
+d
+e
+
+Output
+
+id	output
+a	DUP1
+a	DUP1
+b	NULL
+c	DUP2
+c	DUP2
+c	DUP2
+d	DUP3
+d	DUP3
+e	NULL
+
+
+create table list (id varchar(5));
+
+insert into list values ('a');
+insert into list values ('a');
+insert into list values ('b');
+insert into list values ('c');
+insert into list values ('c');
+insert into list values ('c');
+insert into list values ('d');
+insert into list values ('d');
+insert into list values ('e');
+
+
+Solution
+
+with cte1 AS (
+SELECT 
+	id
+FROM list
+GROUP BY id
+HAVING COUNT(id) > 1
+), cte2 AS (
+SELECT 
+	*, 
+	RANK() OVER(ORDER BY id) AS rn
+FROM cte1
+)
+SELECT 
+	list.id,
+	CASE WHEN rn IS NOT NULL THEN CONCAT('DUP',rn)
+	END AS output
+FROM list
+LEFT JOIN cte2
+ON list.id = cte2.id
+;

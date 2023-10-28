@@ -1,0 +1,98 @@
+--AB
+-- Student Marks Case Study
+
+
+Input
+
+studentid	studentname	subject		marks	testid	testdate
+2		Max Ruin	Subject1	63	1	2022-01-02
+3		Arnold		Subject1	95	1	2022-01-02
+4		Krish Star	Subject1	61	1	2022-01-02
+5		John Mike	Subject1	91	1	2022-01-02
+4		Krish Star	Subject2	71	1	2022-01-02
+3		Arnold		Subject2	32	1	2022-01-02
+5		John Mike	Subject2	61	2	2022-11-02
+1		John Deo	Subject2	60	1	2022-01-02
+2		Max Ruin	Subject2	84	1	2022-01-02
+2		Max Ruin	Subject3	29	3	2022-01-03
+5		John Mike	Subject3	98	2	2022-11-02
+
+
+
+CREATE TABLE [students](
+ [studentid] [int] NULL,
+ [studentname] [nvarchar](255) NULL,
+ [subject] [nvarchar](255) NULL,
+ [marks] [int] NULL,
+ [testid] [int] NULL,
+ [testdate] [date] NULL
+)
+data:
+insert into students values (2,'Max Ruin','Subject1',63,1,'2022-01-02');
+insert into students values (3,'Arnold','Subject1',95,1,'2022-01-02');
+insert into students values (4,'Krish Star','Subject1',61,1,'2022-01-02');
+insert into students values (5,'John Mike','Subject1',91,1,'2022-01-02');
+insert into students values (4,'Krish Star','Subject2',71,1,'2022-01-02');
+insert into students values (3,'Arnold','Subject2',32,1,'2022-01-02');
+insert into students values (5,'John Mike','Subject2',61,2,'2022-11-02');
+insert into students values (1,'John Deo','Subject2',60,1,'2022-01-02');
+insert into students values (2,'Max Ruin','Subject2',84,1,'2022-01-02');
+insert into students values (2,'Max Ruin','Subject3',29,3,'2022-01-03');
+insert into students values (5,'John Mike','Subject3',98,2,'2022-11-02');
+
+
+-- Q1 Student who scored above the average marks in each subject
+
+WITH avg_cte AS (
+SELECT 
+	subject,
+	AVG(marks) AS avg_marks
+FROM students
+GROUP BY subject
+)
+SELECT
+	*
+from students s
+INNER JOIN avg_cte ac
+ON s.subject=ac.subject
+WHERE s.marks > ac.avg_marks
+
+
+-- Q2  % of students who scored more than 90 in any subject
+
+SELECT 
+	100.0 * COUNT(DISTINCT CASE WHEN marks > 90 THEN studentid ELSE NULL END) / COUNT(DISTINCT studentid) AS perc
+FROM students
+
+
+-- Q3  Find 2nd highest and 2nd lowest marks for each subject
+
+
+WITH cte1 AS (
+SELECT 
+	*,
+	RANK() OVER(PARTITION BY subject ORDER BY marks) AS rn_asc,
+	RANK() OVER(PARTITION BY subject ORDER BY marks DESC) AS rn_dsc
+FROM students
+)
+SELECT
+	subject,
+	SUM(CASE WHEN rn_dsc=2 THEN marks ELSE NULL END) AS second_highest_marks,
+	SUM(CASE WHEN rn_asc=2 THEN marks ELSE NULL END) AS second_lowest_marks
+FROM cte1
+WHERE rn_asc = 2 or rn_dsc=2
+GROUP BY subject
+
+
+-- Q4 For each student and test, identify if their marks increased or decreased from previous test
+
+SELECT *,
+	CASE WHEN marks > prev_marks THEN 'Inc'
+	WHEN marks < prev_marks THEN 'dec'
+	ELSE NULL END AS status
+FROM (
+SELECT 
+	*,
+	LAG(marks,1) OVER(PARTITION BY studentid ORDER BY testdate, subject) AS prev_marks
+FROM students
+) A

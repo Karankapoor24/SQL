@@ -1,0 +1,52 @@
+-- AB
+-- Find Total no of messages exchanged between each person each day.
+
+Input
+
+sms_date	sender	receiver	sms_no
+2020-04-01	Avinash	Vibhor		10
+2020-04-01	Vibhor	Avinash		20
+2020-04-01	Avinash	Pawan		30
+2020-04-01	Pawan	Avinash		20
+2020-04-01	Vibhor	Pawan		5
+2020-04-01	Pawan	Vibhor		8
+2020-04-01	Vibhor	Deepak		50
+
+
+Output
+
+sms_date	p1	p2	total_msg
+2020-04-01	Avinash	Pawan	50
+2020-04-01	Avinash	Vibhor	30
+2020-04-01	Deepak	Vibhor	50
+2020-04-01	Pawan	Vibhor	13
+
+
+CREATE TABLE subscriber (
+ sms_date date ,
+ sender varchar(20) ,
+ receiver varchar(20) ,
+ sms_no int
+);
+-- insert some values
+INSERT INTO subscriber VALUES ('2020-4-1', 'Avinash', 'Vibhor',10);
+INSERT INTO subscriber VALUES ('2020-4-1', 'Vibhor', 'Avinash',20);
+INSERT INTO subscriber VALUES ('2020-4-1', 'Avinash', 'Pawan',30);
+INSERT INTO subscriber VALUES ('2020-4-1', 'Pawan', 'Avinash',20);
+INSERT INTO subscriber VALUES ('2020-4-1', 'Vibhor', 'Pawan',5);
+INSERT INTO subscriber VALUES ('2020-4-1', 'Pawan', 'Vibhor',8);
+INSERT INTO subscriber VALUES ('2020-4-1', 'Vibhor', 'Deepak',50);
+
+
+Solution
+
+SELECT sms_date, p1, p2, SUM(sms_no) AS total_msg
+FROM (
+SELECT 
+	sms_date,
+	CASE WHEN sender < receiver THEN sender ELSE receiver END AS p1,
+	CASE WHEN sender > receiver THEN sender ELSE receiver END AS p2,
+	sms_no
+FROM subscriber
+) A
+GROUP BY sms_date, p1, p2

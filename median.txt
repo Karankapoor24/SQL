@@ -1,0 +1,104 @@
+-- AB
+-- Find the median age of the employees
+
+Input
+
+emp_id	emp_name	department_id	salary	manager_id	emp_age
+1	Ankit		100		10000	4		39
+2	Mohit		100		15000	5		48
+3	Vikas		100		10000	4		37
+4	Rohit		100		5000	2		16
+5	Mudit		200		12000	6		55
+6	Agam		200		12000	2		14
+7	Sanjay		200		9000	2		13
+8	Ashish		200		5000	2		12
+9	Mukesh		300		6000	6		51
+10	Rakesh		300		7000	6		50
+
+
+Output
+
+create table emp(
+emp_id int,
+emp_name varchar(20),
+department_id int,
+salary int,
+manager_id int,
+emp_age int);
+
+insert into emp
+values
+(1, 'Ankit', 100,10000, 4, 39),
+(2, 'Mohit', 100, 15000, 5, 48),
+(3, 'Vikas', 100, 10000,4,37),
+(4, 'Rohit', 100, 5000, 2, 16),
+(5, 'Mudit', 200, 12000, 6,55),
+(6, 'Agam', 200, 12000,2, 14),
+(7, 'Sanjay', 200, 9000, 2,13),
+(8, 'Ashish', 200,5000,2,12),
+(9, 'Mukesh',300,6000,6,51),
+(10, 'Rakesh',300,7000,6,50);
+
+
+
+create table employee 
+(
+emp_id int,
+company varchar(10),
+salary int
+);
+
+insert into employee values (1,'A',2341)
+insert into employee values (2,'A',341)
+insert into employee values (3,'A',15)
+insert into employee values (4,'A',15314)
+insert into employee values (5,'A',451)
+insert into employee values (6,'A',513)
+insert into employee values (7,'B',15)
+insert into employee values (8,'B',13)
+insert into employee values (9,'B',1154)
+insert into employee values (10,'B',1345)
+insert into employee values (11,'B',1221)
+insert into employee values (12,'B',234)
+insert into employee values (13,'C',2345)
+insert into employee values (14,'C',2645)
+insert into employee values (15,'C',2645)
+insert into employee values (16,'C',2652)
+insert into employee values (17,'C',65);
+
+
+Solution 1 (SQL Server Specific)
+
+SELECT
+	*,
+	PERCENTILE_CONT(0.5) WITHIN GROUP(ORDER BY emp_age) OVER() AS mode
+FROM emp
+
+Solution 2 (Not to prefer if duplicate values)
+
+WITH cte1 AS (
+SELECT
+	*,
+	RANK() OVER(ORDER BY emp_age) AS rn_asc,
+	RANK() OVER(ORDER BY emp_age DESC) AS rn_desc
+FROM emp
+)
+SELECT 
+	AVG(emp_age)
+FROM cte1
+WHERE ABS(rn_asc - rn_desc) = 1
+
+Solution 3
+
+SELECT
+	company,
+	AVG(salary) AS median_salary
+FROM (
+SELECT
+	*,
+	ROW_NUMBER() OVER(PARTITION BY company ORDER BY salary) AS rn,
+	COUNT(1) OVER(PARTITION BY company) AS cnt
+FROM employee
+) A
+WHERE rn BETWEEN 1.0*cnt/2 AND 1.0*cnt/2 + 1
+GROUP BY company

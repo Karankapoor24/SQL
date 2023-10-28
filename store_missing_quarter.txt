@@ -1,0 +1,76 @@
+-- AB
+-- For each store, find the quarter in which the store was closed.
+
+Input
+
+Store	Quarter	Amount
+S1	Q1	200
+S1	Q2	300
+S1	Q4	400
+S2	Q1	500
+S2	Q3	600
+S2	Q4	700
+S3	Q1	800
+S3	Q2	750
+S3	Q3	900
+
+
+Output
+
+Store	missing_quarter
+S1	Q3 
+S2	Q2 
+S3	Q4 
+
+CREATE TABLE STORES (
+Store varchar(10),
+Quarter varchar(10),
+Amount int);
+
+INSERT INTO STORES (Store, Quarter, Amount)
+VALUES ('S1', 'Q1', 200),
+('S1', 'Q2', 300),
+('S1', 'Q4', 400),
+('S2', 'Q1', 500),
+('S2', 'Q3', 600),
+('S2', 'Q4', 700),
+('S3', 'Q1', 800),
+('S3', 'Q2', 750),
+('S3', 'Q3', 900);
+
+Solution 1
+
+SELECT
+	Store,
+	'Q' + CAST(10 - SUM(CAST(RIGHT(Quarter,1) AS INT)) AS CHAR(2)) AS missing_quarter
+FROM STORES
+GROUP BY Store
+
+
+Solution 2
+
+WITH cte1 AS (
+SELECT DISTINCT Store, 1 AS q_no FROM STORES
+UNION ALL
+SELECT Store, q_no + 1 AS q_no FROM cte1
+WHERE q_no < 4
+), cte2 AS (
+SELECT Store, 'Q' + CAST(q_no AS CHAR(2)) AS q_no FROM cte1
+)
+SELECT cte2.* FROM cte2
+LEFT JOIN STORES s
+ON cte2.Store = s.Store AND cte2.q_no = s.Quarter
+WHERE s.Store IS NULL
+
+
+Solution 3
+
+WITH cte1 AS (
+SELECT
+	DISTINCT s1.Store, s2.Quarter
+FROM STORES s1, STORES s2
+)
+SELECT cte1.* FROM cte1
+LEFT JOIN STORES s
+ON cte1.Store = s.Store AND cte1.Quarter = s.Quarter
+WHERE s.Store IS NULL

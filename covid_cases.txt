@@ -1,0 +1,81 @@
+--AB
+-- Find cities where covid cases are increasing continuously
+
+
+Input
+
+city		days		cases
+DELHI		2022-01-01	100
+DELHI		2022-01-02	200
+DELHI		2022-01-03	300
+MUMBAI		2022-01-01	100
+MUMBAI		2022-01-02	100
+MUMBAI		2022-01-03	300
+CHENNAI		2022-01-01	100
+CHENNAI		2022-01-02	200
+CHENNAI		2022-01-03	150
+BANGALORE	2022-01-01	100
+BANGALORE	2022-01-02	300
+BANGALORE	2022-01-03	200
+BANGALORE	2022-01-04	400
+
+
+Output
+
+city
+DELHI
+
+
+create table covid(city varchar(50),days date,cases int);
+
+insert into covid values('DELHI','2022-01-01',100);
+insert into covid values('DELHI','2022-01-02',200);
+insert into covid values('DELHI','2022-01-03',300);
+
+insert into covid values('MUMBAI','2022-01-01',100);
+insert into covid values('MUMBAI','2022-01-02',100);
+insert into covid values('MUMBAI','2022-01-03',300);
+
+insert into covid values('CHENNAI','2022-01-01',100);
+insert into covid values('CHENNAI','2022-01-02',200);
+insert into covid values('CHENNAI','2022-01-03',150);
+
+insert into covid values('BANGALORE','2022-01-01',100);
+insert into covid values('BANGALORE','2022-01-02',300);
+insert into covid values('BANGALORE','2022-01-03',200);
+insert into covid values('BANGALORE','2022-01-04',400);
+
+
+Solution 1
+
+WITH cte1 AS (
+SELECT 
+	*,
+	CASE WHEN cases < LEAD(cases,1) OVER(PARTITION BY city ORDER BY days) THEN 1 
+	WHEN LEAD(cases,1) OVER(PARTITION BY city ORDER BY days) IS NULL THEN 1
+	ELSE 0 END AS flag
+FROM covid
+)
+SELECT 
+	city 
+FROM cte1
+GROUP BY city 
+HAVING COUNT(city) = SUM(flag)
+;
+
+
+Solution 2
+
+WITH cte1 AS (
+SELECT
+	*,
+	RANK() OVER(PARTITION BY city ORDER BY days) AS rn_days,
+	RANK() OVER(PARTITION BY city ORDER BY cases) AS rn_cases,
+	RANK() OVER(PARTITION BY city ORDER BY days) - RANK() OVER(PARTITION BY city ORDER BY cases) AS diff
+FROM covid
+)
+SELECT
+	city
+FROm cte1
+GROUP BY city
+HAVING COUNT(DISTINCT diff) = 1 AND SUM(diff) = 0

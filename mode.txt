@@ -1,0 +1,59 @@
+-- AB
+-- Find the mode of the data
+
+Input 
+
+id
+1
+2
+2
+3
+3
+3
+3
+4
+5
+
+Output
+
+Mode 
+3
+
+
+create table mode 
+(
+id int
+);
+
+insert into mode values (1),(2),(2),(3),(3),(3),(3),(4),(5);
+
+Solution 1
+
+WITH freq_cte AS (
+SELECT
+	id,
+	COUNT(id) AS freq
+FROM mode
+GROUP BY id
+)
+SELECT
+	id
+FROM freq_cte
+WHERE freq = (SELECT MAX(freq) FROM freq_cte)
+
+Solution 2
+
+WITH freq_cte AS (
+SELECT
+	id,
+	COUNT(id) AS freq
+FROM mode
+GROUP BY id
+), rnk_cte AS (
+SELECT
+	*,
+	RANK() OVER(ORDER BY freq DESC) AS rn
+FROM freq_cte
+)
+SELECT id FROM rnk_cte
+WHERE rn=1
