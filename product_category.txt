@@ -1,0 +1,54 @@
+You are provided with a table named Products containing information about various products, including their names and prices. 
+Write a SQL query to count number of products in each category based on its price into three categories below. Display the output in descending order of no of products.
+1- "Low Price" for products with a price less than 100
+2- "Medium Price" for products with a price between 100 and 500 (inclusive)
+3- "High Price" for products with a price greater than 500.
+Tables: Products
+
+CREATE TABLE PRODUCTS (
+	PRODUCT_ID INT,
+	PRODUCT_NAME VARCHAR(30),
+	PRICE INT
+);
+
+INSERT INTO PRODUCTS VALUES
+(1,'Laptop',800),
+(2,'Smartphone',600),
+(3,'Headphones',50),
+(4,'Tablet',400),
+(5,'Keyboard',30),
+(6,'Mouse',15),
+(7,'Monitor',350),
+(8,'Printer',120),
+(9,'USBDrive',10),
+(10,'ExternalHardDrive',150),
+(11,'WirelessRouter',80),
+(12,'BluetoothSpeaker',70),
+(13,'Webcam',45),
+(14,'Microphone',25),
+(15,'GamingMouse',60)
+
+
+Required Output
+
+CATEGORY		NO_OF_PRODUCTS
+Low Price		9
+Medium Price	4
+High Price		2
+
+
+WITH cte1 AS (
+SELECT 
+	*,
+	CASE WHEN PRICE < 100 THEN 'Low Price'
+		 WHEN PRICE >= 100 AND PRICE <= 500 THEN 'Medium Price'
+		 ELSE 'High Price'
+	END AS CATEGORY
+FROM PRODUCTS
+)
+SELECT 
+	CATEGORY,
+	COUNT(CATEGORY) AS NO_OF_PRODUCTS
+FROM cte1
+GROUP BY CATEGORY
+ORDER BY NO_OF_PRODUCTS DESC;

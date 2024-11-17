@@ -1,0 +1,54 @@
+Imagine you're working for a library and you're tasked with generating a report on the borrowing habits of patrons. 
+You have two tables in your database: Books and Borrowers.
+
+Write an SQL to display the name of each borrower along with a comma-separated list of the books they have borrowed in alphabetical order, 
+display the output in ascending order of Borrower Name.
+
+CREATE TABLE borrowers (
+	borrower_id INT,
+	borrower_name VARCHAR(30),
+	book_id INT
+);
+
+INSERT INTO borrowers VALUES
+(1, 'Alice', 1),
+(2, 'Bob', 2),
+(3, 'Charlie', 3),
+(4, 'David', 4),
+(5, 'Eve', 5),
+(6, 'Frank', 6),
+(7, 'Grace', 7),
+(1, 'Alice', 5),
+(2, 'Bob', 6),
+(3, 'Charlie', 7),
+(4, 'David', 8),
+(6, 'Frank', 10),
+(8, 'Harry', 2)
+
+
+
+CREATE TABLE books (
+	book_id INT,
+	book_name VARCHAR(50),
+	genre VARCHAR(30)
+)
+
+
+INSERT INTO books VALUES
+(1, 'The Great Gatsby', 'Fiction'),
+(2, 'To Kill a Mockingbird', 'Fiction'),
+(3, '1984', 'Fiction'),
+(4, 'The Catcher in the Rye', 'Fiction'),
+(5, 'Pride and Prejudice', 'Romance'),
+(6, 'Romeo and Juliet', 'Romance'),
+(7, 'The Notebook', 'Romance'),
+(8, 'The Hunger Games', 'Science Fiction'),
+(9, 'Dune', 'Science Fiction'),
+(10, 'Foundation', 'Science Fiction')
+
+SELECT 
+	borrower_name, STRING_AGG(book_name, ',') AS Result
+FROM borrowers b1
+INNER JOIN books b2
+ON b1.book_id = b2.book_id
+GROUP by borrower_name
