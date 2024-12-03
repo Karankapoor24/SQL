@@ -1,0 +1,66 @@
+You own a small online store, and want to analyze customer ratings for the products that you're selling. 
+After doing a data pull, you have a list of products and a log of purchases. Within the purchase log, 
+each record includes the number of stars (from 1 to 5) as a customer rating for the product.
+ 
+ 
+For each category, find the lowest price among all products that received at least one 4-star or above rating from customers.
+If a product category did not have any products that received at least one 4-star or above rating, the lowest price is considered to be 0. 
+The final output should be sorted by product category in alphabetical order.
+
+
+CREATE TABLE products_lp (
+	id INT,
+	name VARCHAR(30),
+	category VARCHAR(30),
+	price INT
+);
+
+INSERT INTO products_lp VALUES
+(1, 'Cripps Pink', 'apple', 10),
+(2, 'Navel Orange', 'orange', 12),
+(3, 'Golden Delicious', 'apple', 6),
+(4, 'Clementine', 'orange', 14),
+(5, 'Pinot Noir', 'grape', 20),
+(6, 'Bing Cherries', 'cherry', 36)
+
+
+CREATE TABLE purchases_lp (
+	id INT, 
+	product_id INT,
+	stars INT
+);
+
+INSERT INTO purchases_lp VALUES 
+(1, 1, 2),
+(2, 3, 3),
+(3, 2, 2),
+(4, 4, 4),
+(5, 6, 5),
+(6, 6, 4)
+
+
+Output
+
+category	price
+apple		0
+cherry		36
+grape		0
+orange		12
+
+
+Solution
+
+WITH cte1 AS (
+SELECT 
+	pr.category,
+	MAX(pu.stars) AS max_stars, 
+	MIN(pr.price) AS min_price
+FROM purchases_lp pu
+RIGHT JOIN products_lp pr
+ON pu.product_id = pr.id
+GROUP by pr.category
+)
+SELECT 
+	category,
+	CASE WHEN max_stars >= 4 THEN min_price ELSE 0 END AS price
+FROM cte1
