@@ -51,6 +51,14 @@ INSER INTO reviews VALUES
 (12, 8, '2023-03-05', 5),
 (13, 9, '2023-03-05', 5)
 
+OUTPUT
+
+host_id		no_of_listing	avg_rating
+103			2				5
+102			3				4
+
+
+Solution
 
 SELECT TOP 2
 	host_id, COUNT(DISTINCT l.listing_id) Count_of_listing,

@@ -46,6 +46,22 @@ INSERT INTO books VALUES
 (9, 'Dune', 'Science Fiction'),
 (10, 'Foundation', 'Science Fiction')
 
+
+OUTPUT
+
+borrower_name	Result
+Alice			The Great Gatsby,Pride and Prejudice
+Bob				Romeo and Juliet,To Kill a Mockingbird
+Charlie			1984,The Notebook
+David			The Hunger Games,The Catcher in the Rye
+Eve				Pride and Prejudice
+Frank			Romeo and Juliet,Foundation
+Grace			The Notebook
+Harry			To Kill a Mockingbird
+
+
+Solution
+
 SELECT 
 	borrower_name, STRING_AGG(book_name, ',') AS Result
 FROM borrowers b1

@@ -1,0 +1,82 @@
+You are given a table of list of lifts , their maximum capacity and people along with their weight who wants to enter into it. 
+You need to make sure maximum people enter into the lift without lift getting overloaded.
+
+For each lift find the comma separated list of people who can be accommodated. 
+The comma separated list should have people in the order of their weight in increasing order, display the output in increasing order of id.
+
+CREATE TABLE lifts (
+	id INT,
+	capacity_kg INT
+);
+
+INSERT INTO lifts VALUES 
+(1, 300),
+(2, 350)
+;
+
+CREATE TABLE lift_passengers (
+	passenger_name VARCHAR(20),
+	weight_kg INT,
+	lift_id INT
+);
+
+INSERT INTO lift_passengers VALUES
+('Rahul', 85, 1),
+('Adarsh', 73, 1),
+('Riti', 95, 1),
+('Dheeraj', 80, 1),
+('Vimal', 83, 2),
+('Neha', 77, 2),
+('Preeti', 73, 2),
+('Himanshi', 85, 2)
+
+
+Output
+
+id	passenger_list
+1	Adarsh,Dheeraj,Rahul
+2	Preeti,Neha,Vimal,Himanshi
+
+
+Solution
+
+
+WITH cte1 AS (
+SELECT 
+	*,
+	SUM(weight_kg) OVER(PARTITION BY lift_id ORDER BY weight_kg) AS sum_weight 
+FROM lift_passengers
+), cte2 AS (
+SELECT 
+	cte1.passenger_name, cte1.weight_kg, cte1.sum_weight,
+	l.id, l.capacity_kg
+FROM cte1
+INNER JOIN lifts l
+ON cte1.lift_id = l.id
+WHERE sum_weight < capacity_kg
+)
+SELECT 
+	id, STRING_AGG(passenger_name, ',') AS passenger_list 
+FROM cte2
+GROUP BY id
+ORDER BY id
+
+
+WITH cte1 AS (
+SELECT 
+	l.id,
+	lp.passenger_name,
+	lp.weight_kg,
+	l.capacity_kg,
+	SUM(weight_kg) OVER(PARTITION BY lift_id ORDER BY weight_kg) AS running_weight
+FROM lift_passengers lp
+INNER JOIN lifts l
+ON lp.lift_id = l.id
+)
+SELECT 
+	id,
+	STRING_AGG(passenger_name, ',') AS passenger_list
+FROM cte1
+WHERE capacity_kg > running_weight
+GROUP BY id
+ORDER BY id
