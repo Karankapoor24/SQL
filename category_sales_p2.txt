@@ -1,0 +1,51 @@
+𝐖𝐫𝐢𝐭𝐞 𝐚𝐧 𝐒𝐐𝐋 𝐪𝐮𝐞𝐫𝐲 𝐭𝐨 𝐫𝐞𝐭𝐫𝐢𝐞𝐯𝐞 𝐭𝐡𝐞 𝐭𝐨𝐭𝐚𝐥 𝐬𝐚𝐥𝐞𝐬 𝐚𝐦𝐨𝐮𝐧𝐭 𝐢𝐧 𝐞𝐚𝐜𝐡 𝐜𝐚𝐭𝐞𝐠𝐨𝐫𝐲. 𝐈𝐧𝐜𝐥𝐮𝐝𝐞 𝐚𝐥𝐥 𝐜𝐚𝐭𝐞𝐠𝐨𝐫𝐢𝐞𝐬, 𝐢𝐟 𝐧𝐨 𝐩𝐫𝐨𝐝𝐮𝐜𝐭𝐬 𝐰𝐞𝐫𝐞 𝐬𝐨𝐥𝐝 𝐢𝐧 𝐚 𝐜𝐚𝐭𝐞𝐠𝐨𝐫𝐲 𝐝𝐢𝐬𝐩𝐥𝐚𝐲 𝐚𝐬 0. 
+𝐃𝐢𝐬𝐩𝐥𝐚𝐲 𝐭𝐡𝐞 𝐨𝐮𝐭𝐩𝐮𝐭 𝐢𝐧 𝐚𝐬𝐜𝐞𝐧𝐝𝐢𝐧𝐠 𝐨𝐫𝐝𝐞𝐫 𝐨𝐟 𝐭𝐨𝐭𝐚𝐥_𝐬𝐚𝐥𝐞𝐬.
+
+
+CREATE TABLE categories_p2 (
+	category_id INT,
+	category_name VARCHAR(30)
+);
+
+INSERT INTO categories_p2 VALUES 
+(1, 'Electronics'),
+(2, 'Clothing'),
+(3, 'Books'),
+(4, 'Home Decor');
+
+
+CREATE TABLE sales_p2 (
+	sale_id INT,
+	category_id INT,
+	amount INT,
+	sale_date DATE
+);
+
+INSERT INTO sales_p2 VALUES
+(1, 1, 500, '2022-01-05'),
+(2, 1, 800, '2022-02-10'),
+(4, 3, 200, '2022-02-20'),
+(5, 3, 150, '2022-03-01'),
+(6, 4, 400, '2022-02-25'),
+(7, 4, 200, '2022-03-05');
+
+
+Output
+
+category_name	total_sales
+Clothing		0
+Books			350
+Home Decor		600
+Electronics		1300
+
+
+Solution
+
+SELECT 
+	category_name, 
+	COALESCE(SUM(amount), 0) AS total_sales
+FROM categories_p2 c
+LEFT JOIN sales_p2 s
+ON c.category_id = s.category_id
+GROUP BY category_name
+ORDER BY total_sales
