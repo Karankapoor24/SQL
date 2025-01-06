@@ -1,0 +1,63 @@
+Write an sql query to merge products per customer for each day as shown in expected output.
+
+
+drop TABLE if exists orders;
+CREATE TABLE orders 
+(
+	customer_id 	INT,
+	dates 			DATE,
+	product_id 		INT
+);
+INSERT INTO orders VALUES
+(1, '2024-02-18', 101),
+(1, '2024-02-18', 102),
+(1, '2024-02-19', 101),
+(1, '2024-02-19', 103),
+(2, '2024-02-18', 104),
+(2, '2024-02-18', 105),
+(2, '2024-02-19', 101),
+(2, '2024-02-19', 106); 
+
+
+select * from orders;
+
+
+Input
+
+customer_id	dates		product_id
+1			2024-02-18	101
+1			2024-02-18	102
+1			2024-02-19	101
+1			2024-02-19	103
+2			2024-02-18	104
+2			2024-02-18	105
+2			2024-02-19	101
+2			2024-02-19	106
+
+
+Output
+
+dates		products
+2024-02-18	101
+2024-02-18	101,102
+2024-02-18	102
+2024-02-18	104
+2024-02-18	104,105
+2024-02-18	105
+2024-02-19	101
+2024-02-19	101,103
+2024-02-19	101,106
+2024-02-19	103
+2024-02-19	106
+
+
+SELECT
+	dates, CAST(product_id AS VARCHAR(20)) AS products
+FROM orders
+UNION
+SELECT 
+	dates, STRING_AGG(product_id, ',') AS products
+FROM orders
+GROUP BY customer_id, dates
+ORDER BY dates, products
+;
