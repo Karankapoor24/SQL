@@ -1,0 +1,62 @@
+/*
+A table named “famous” has two columns called user id and follower id. It represents each user ID has a 
+particular follower ID. These follower IDs are also users. Then, find the famous percentage of each user. 
+Famous Percentage = number of followers a user has / total number of users on the platform.
+
+
+Input
+
+user_id	follower_id
+1		2
+1		3
+2		4
+5		1
+5		3
+11		7
+12		8
+13		5
+13		10
+14		12
+14		3
+15		14
+15		13
+
+
+Output
+
+user_id	famous_percent
+1		15
+2		7
+5		15
+11		7
+12		7
+13		15
+14		15
+15		15
+*/
+
+CREATE TABLE L1_famous (user_id INT, follower_id INT);
+
+INSERT INTO L1_famous VALUES
+(1, 2), (1, 3), (2, 4), (5, 1), (5, 3), 
+(11, 7), (12, 8), (13, 5), (13, 10), 
+(14, 12), (14, 3), (15, 14), (15, 13);
+
+
+Solution
+
+WITH all_users AS (
+SELECT user_id as users FROM L1_famous
+UNION
+SELECT follower_id as users FROM L1_famous
+), followers AS (
+SELECT 
+	user_id, COUNT(follower_id) AS follow_count
+FROM L1_famous
+GROUP BY user_id
+)
+SELECT
+	f.user_id,
+	100 * f.follow_count / (SELECT COUNT(DISTINCT users) FROM all_users) AS famous_percent
+FROM followers f
+;

@@ -1,0 +1,69 @@
+Given graph shows the hierarchy of employees in a company. 
+Write an SQL query to split the hierarchy and show the employees corresponding to their team.
+
+
+DROP TABLE IF EXISTS company;
+CREATE TABLE company
+(
+	employee	varchar(10) primary key,
+	manager		varchar(10)
+);
+
+INSERT INTO company values ('Elon', null);
+INSERT INTO company values ('Ira', 'Elon');
+INSERT INTO company values ('Bret', 'Elon');
+INSERT INTO company values ('Earl', 'Elon');
+INSERT INTO company values ('James', 'Ira');
+INSERT INTO company values ('Drew', 'Ira');
+INSERT INTO company values ('Mark', 'Bret');
+INSERT INTO company values ('Phil', 'Mark');
+INSERT INTO company values ('Jon', 'Mark');
+INSERT INTO company values ('Omid', 'Earl');
+
+SELECT * FROM company;
+
+
+Input 
+
+employee	manager
+Bret		Elon
+Drew		Ira
+Earl		Elon
+Elon		NULL
+Ira			Elon
+James		Ira
+Jon			Mark
+Mark		Bret
+Omid		Earl
+Phil		Mark
+
+
+Output
+
+teams	members
+Team1	Bret,Elon,Jon,Mark,Phil
+Team2	Earl,Elon,Omid
+Team3	Drew,Elon,Ira,James
+
+
+Solution
+
+WITH cte AS (
+SELECT 
+	employee ,manager, 
+	row_number() over (order by employee) as rn 
+FROM company 
+WHERE manager = (SELECT employee FROM company WHERE manager is null)
+
+UNION ALL 
+
+SELECT 
+	d.employee, d.manager, rn 
+FROM cte c 
+INNER JOIN company d 
+ON c.employee = d.manager
+)
+SELECT 
+	CONCAT('Team', rn) AS teams,  STRING_AGG(manager, ',') AS members 
+FROM (SELECT manager, rn FROM cte UNION SELECT employee, rn FROM cte)y 
+GROUP BY rn ORDER BY rn;

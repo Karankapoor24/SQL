@@ -1,0 +1,49 @@
+-- AB
+
+-- Buy
+Date	Time	Qty	per_share_price	total_value
+15	10	10	10		100
+15	14	20	10		200
+
+-- Sell
+Date	Time	Qty	per_share_price	total_value
+15	15	15	20		300
+
+
+Create Table Buy (
+Date Int,
+Time Int,
+Qty Int,
+per_share_price int,
+total_value int );
+
+Create Table sell(
+Date Int,
+Time Int,
+Qty Int,
+per_share_price int,
+total_value int );
+INSERT INTO Buy (date, time, qty, per_share_price, total_value)
+VALUES
+(15, 10, 10, 10, 100),
+(15, 14, 20, 10, 200);
+
+INSERT INTO Sell(date, time, qty, per_share_price, total_value)
+VALUES (15, 15, 15, 20, 300);
+
+Solution
+
+WITH running_sum_values AS (
+SELECT 
+	b.Time AS buy_time, b.Qty AS buy_qty, s.Qty AS sell_qty,
+	SUM(b.Qty) OVER(ORDER BY b.Time) AS r_buy_qty,
+	ISNULL(SUM(b.Qty) OVER(ORDER BY b.Time ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING), 0) AS r_buy_qty_prev
+FROM Buy b
+INNER JOIN sell s
+ON b.Date = s.Date AND b.Time < s.Time
+)
+SELECT
+	buy_time,
+	CASE WHEN 
+FROM running_sum_values
+;
