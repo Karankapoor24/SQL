@@ -1,0 +1,49 @@
+/*
+Write a SQL query to find the person_name of the last person that can fit on the bus without exceeding the weight limit. The limit is 400.
+
+
+Input 
+
+personId	personName	personWeight	turn
+1			ankita		79				6
+2			Alex		80				3
+3			rahul		95				4
+4			tom			100				1
+5			john		120				2
+6			bhavna		100				5
+
+
+Output 
+
+rahul
+
+*/
+
+
+create table bus(personId int, personName varchar(100),personWeight int,turn int);
+
+insert into bus values(5,'john',120,2);
+insert into bus values(4,'tom',100,1);
+insert into bus values(3,'rahul',95,4);
+insert into bus values(6,'bhavna',100,5);
+insert into bus values(1,'ankita',79,6);
+insert into bus values(2,'Alex',80,3);
+
+
+WITH weights AS (
+SELECT
+	*, 
+	SUM(personWeight) OVER(ORDER BY turn) AS sum_weight
+FROM bus
+), orders AS (
+SELECT 
+	*,
+	RANK() OVER(ORDER BY sum_weight DESC) as rnk
+FROM 
+weights
+WHERE sum_weight <= 400
+)
+SELECT 
+	personName
+FROM orders
+WHERE rnk = 1;
