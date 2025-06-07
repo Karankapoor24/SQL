@@ -1,0 +1,64 @@
+/*
+Write a code in SQL *without using windows function* to find out the 2nd level joiners
+with initial referrer src_id who still maintain an unbroken chain.
+
+
+Output
+
+referred_id
+D
+F
+
+*/
+
+CREATE TABLE events (
+    src_id VARCHAR(10),
+    referred_id VARCHAR(10),
+    timestamp DATETIME,
+    event VARCHAR(20)
+);
+
+INSERT INTO events (src_id, referred_id, timestamp, event) VALUES
+('A', 'B', '2024-01-01 10:00', 'add'),
+('A', 'C', '2024-01-01 10:05', 'add'),
+('A', 'C', '2024-01-02 09:00', 'remove'),
+('B', 'D', '2024-01-01 11:00', 'add'),
+('B', 'E', '2024-01-02 13:00', 'remove'),
+('C', 'F', '2024-01-01 12:00', 'add'),
+('C', 'G', '2024-01-01 13:00', 'add'),
+('C', 'G', '2024-01-03 09:00', 'remove');
+
+
+WITH firstLevel AS (
+SELECT 
+	referred_id 
+FROM events
+WHERE src_id='A' AND event = 'add'
+), secondLevel AS (
+SELECT e.referred_id
+FROM events e
+INNER JOIN firstLevel f ON e.src_id = f.referred_id
+WHERE e.event = 'add'
+), unbrokenChain AS (
+SELECT 
+	s.referred_id
+FROM secondLevel s
+LEFT JOIN events e 
+ON s.referred_id = e.referred_id
+GROUP BY s.referred_id
+HAVING COUNT(CASE WHEN e.event = 'remove' THEN 1 END) = 0
+)
+SELECT referred_id FROM unbrokenChain
+
+
+SELECT 
+	e2.referred_id
+FROM events e1
+JOIN events e2 
+ON e1.referred_id = e2.src_id
+LEFT JOIN events e3
+ON e2.referred_id = e3.referred_id AND e3.event='remove'
+WHERE e1.src_id = 'A' 
+AND e1.event = 'add'
+AND e2.event = 'add'
+AND e3.referred_id IS NULL
