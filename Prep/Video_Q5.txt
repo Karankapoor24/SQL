@@ -46,24 +46,6 @@ create table emp_transaction
 	trns_type	varchar(20),
 	amount		numeric
 );
-insert into emp_transaction
-select s.emp_id, s.emp_name, x.trns_type
-, case when x.trns_type = 'Basic' then round(base_salary * (cast(x.percentage as decimal)/100),2)
-	   when x.trns_type = 'Allowance' then round(base_salary * (cast(x.percentage as decimal)/100),2)
-	   when x.trns_type = 'Others' then round(base_salary * (cast(x.percentage as decimal)/100),2)
-	   when x.trns_type = 'Insurance' then round(base_salary * (cast(x.percentage as decimal)/100),2)
-	   when x.trns_type = 'Health' then round(base_salary * (cast(x.percentage as decimal)/100),2)
-	   when x.trns_type = 'House' then round(base_salary * (cast(x.percentage as decimal)/100),2) end as amount	   
-from salary s
-cross join (select income as trns_type, percentage from income
-			union
-			select deduction as trns_type, percentage from deduction) x;
-
-
-select * from salary;
-select * from income;
-select * from deduction;
-select * from emp_transaction;
 
 
 Input
@@ -114,6 +96,23 @@ emp_id	emp_name	trns_type		amount
 
 
 Solution 1
+
+
+insert into emp_transaction
+select s.emp_id, s.emp_name, x.trns_type
+, case when x.trns_type = 'Basic' then round(base_salary * (cast(x.percentage as decimal)/100),2)
+	   when x.trns_type = 'Allowance' then round(base_salary * (cast(x.percentage as decimal)/100),2)
+	   when x.trns_type = 'Others' then round(base_salary * (cast(x.percentage as decimal)/100),2)
+	   when x.trns_type = 'Insurance' then round(base_salary * (cast(x.percentage as decimal)/100),2)
+	   when x.trns_type = 'Health' then round(base_salary * (cast(x.percentage as decimal)/100),2)
+	   when x.trns_type = 'House' then round(base_salary * (cast(x.percentage as decimal)/100),2) end as amount	   
+from salary s
+cross join (select income as trns_type, percentage from income
+			union
+			select deduction as trns_type, percentage from deduction) x;
+
+
+Solution 2
 
 INSERT INTO emp_transaction
 SELECT 
