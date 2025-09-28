@@ -54,6 +54,30 @@ velocity	good	wrong	regular
 Solution
 
 WITH cte AS (
+SELECT 
+	*, 
+	ROW_NUMBER() OVER(Partition by client, auto , repair_date Order by client, auto , repair_date) AS rn
+FROM auto_repair
+), cte2 AS (
+SELECT 
+	a1.indicator AS abc, a1.value AS def,
+	a2.indicator AS ghi, a2.value AS jkl
+FROM cte a1
+JOIN cte a2
+ON a1.client=a2.client AND a1.auto=a2.auto AND a1.repair_date=a2.repair_date AND a1.rn<a2.rn
+)
+SELECT
+	jkl AS velocity, 
+	SUM(CASE WHEN def='good' THEN 1 ELSE 0 END) AS good,
+	SUM(CASE WHEN def='wrong' THEN 1 ELSE 0 END) AS wrong,
+	SUM(CASE WHEN def='regular' THEN 1 ELSE 0 END) AS regular
+FROM cte2
+GROUP BY jkl
+;
+
+Best Solution
+
+WITH cte AS (
 SELECT
 	client, auto, repair_date, MAX(value) AS level, MIN(value) AS velocity
 FROM auto_repair

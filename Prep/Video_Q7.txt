@@ -80,3 +80,12 @@ FROM Day_Indicator) abc
 WHERE flag = 'Include'
 ;
 
+
+
+Explanation 
+
+As we need weekday number on the basis of Dates column, we are doing DATEPART(dw, Dates). But this gives Sunday 1, Monday 2 and so on.
+But in DAY_INDICATOR Field 1st character is Monday, 2nd character is Tuesday and so on.
+So to compare we need to convert. Thus we do - DATEPART(dw, Dates) + 5) % 7 + 1 - This returns day number on the basis of date and gives 1 for Monday, 2 for Tuesday and so on.
+From Day Indicator, we need that field only based on DATEPART and compare and get the result
+

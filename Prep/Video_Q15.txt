@@ -1,0 +1,63 @@
+/*
+PROBLEM STATEMENT: 
+For the given friends, find the no of mutual friends
+*/
+
+
+DROP TABLE IF EXISTS Friends;
+
+CREATE TABLE Friends
+(
+	Friend1 	VARCHAR(10),
+	Friend2 	VARCHAR(10)
+);
+INSERT INTO Friends VALUES ('Jason','Mary');
+INSERT INTO Friends VALUES ('Mike','Mary');
+INSERT INTO Friends VALUES ('Mike','Jason');
+INSERT INTO Friends VALUES ('Susan','Jason');
+INSERT INTO Friends VALUES ('John','Mary');
+INSERT INTO Friends VALUES ('Susan','Mary');
+
+select * from Friends;
+
+
+Input
+
+Friend1	Friend2
+Jason	Mary
+Mike	Mary
+Mike	Jason
+Susan	Jason
+John	Mary
+Susan	Mary
+
+
+Output
+
+Friend1	Friend2	mutual_friends
+Jason	Mary	2
+John	Mary	0
+Mike	Jason	1
+Mike	Mary	1
+Susan	Jason	1
+Susan	Mary	1
+
+
+Solution
+
+WITH all_friends AS (
+SELECT Friend1, Friend2 FROM Friends
+UNION ALL
+SELECT Friend2, Friend1 FROM Friends
+)
+SELECT 
+	DISTINCT f.*,
+	COUNT(af.Friend2) OVER(PARTITION BY f.friend1, f.friend2 ORDER BY f.friend1, f.friend2) AS mutual_friends
+FROM friends f
+LEFT JOIN all_friends af 
+ON f.Friend1 = af.Friend1
+AND af.Friend2 IN (
+					SELECT af2.friend2
+					FROM all_friends af2
+					WHERE af2.friend1 = f.friend2
+					)
