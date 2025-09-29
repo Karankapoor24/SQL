@@ -1,0 +1,60 @@
+-- Given table showcases details of pizza delivery order for the year of 2023.
+-- If an order is delayed then the whole order is given for free. Any order that takes 30 minutes more than the expected time is considered as delayed order. 
+-- Identify the percentage of delayed order for each month and also display the total no of free pizzas given each month.
+
+
+DROP TABLE IF EXISTS pizza_delivery;
+
+CREATE TABLE pizza_delivery (
+    order_id            INT,
+    order_time          DATETIME,
+    expected_delivery   DATETIME,
+    actual_delivery     DATETIME,
+    no_of_pizzas        INT,
+    price               DECIMAL(10, 2)
+);
+
+
+-- Data to this table can be found in CSV File
+
+select * from pizza_delivery;
+
+
+Output
+
+period		delayed_delivery_percentage		free_pizzas
+Jan-2023	9.23							31
+Feb-2023	12.22							49
+Mar-2023	15.79							61
+Apr-2023	13.41							77
+May-2023	14.29							65
+Jun-2023	10.96							48
+Jul-2023	15.71							43
+Aug-2023	11.24							63
+Sep-2023	18.92							89
+Oct-2023	15.91							60
+Nov-2023	23.08							105
+Dec-2023	15.15							58
+
+
+Solution
+
+
+SELECT 
+	FORMAT(order_time, 'MMM-yyyy') AS period,
+	CAST((100.0 * SUM(CASE WHEN DATEDIFF(MINUTE, order_time, actual_delivery) > 30 THEN 1
+		 ELSE 0 END) / COUNT(1)) AS DECIMAL(4,2)) AS delayed_delivery_percentage,
+	SUM(CASE WHEN DATEDIFF(MINUTE, order_time, actual_delivery) > 30 THEN no_of_pizzas
+		 ELSE 0 END) AS free_pizzas
+FROM pizza_delivery
+WHERE actual_delivery IS NOT NULL
+GROUP BY FORMAT(order_time, 'MMM-yyyy')
+ORDER BY MONTH(PARSE(FORMAT(order_time, 'MMM-yyyy') AS DATETIME))
+
+
+Explanation - TO extract period in format Jan-2023 use FORMAT(order_time, 'MMM-yyyy'). 
+Now for each period we need the delayed orders which is given by SUM(CASE WHEN DATEDIFF(MINUTE, order_time, actual_delivery) > 30 THEN 1
+		 ELSE 0 END)
+COUNT(1) gives all the orders in period. So to find percentage we need to divide both.
+Now for pizza count SUM(CASE WHEN DATEDIFF(MINUTE, order_time, actual_delivery) > 30 THEN no_of_pizzas
+		 ELSE 0 END)

@@ -1,0 +1,89 @@
+-- Given table contains reported covid cases in 2020. 
+-- Calculate the percentage increase in covid cases each month versus cumulative cases as of the prior month.
+-- Return the month number, and the percentage increase rounded to one decimal. Order the result by the month.
+
+
+drop table if exists covid_cases;
+
+create table covid_cases
+(
+	cases_reported	int,
+	dates			date	
+);
+
+
+INSERT INTO covid_cases VALUES (20124, '2020-01-10');
+INSERT INTO covid_cases VALUES (40133, '2020-01-15');
+INSERT INTO covid_cases VALUES (65005, '2020-01-20');
+INSERT INTO covid_cases VALUES (30005, '2020-02-08');
+INSERT INTO covid_cases VALUES (35015, '2020-02-19');
+INSERT INTO covid_cases VALUES (15015, '2020-03-03');
+INSERT INTO covid_cases VALUES (35035, '2020-03-10');
+INSERT INTO covid_cases VALUES (49099, '2020-03-14');
+INSERT INTO covid_cases VALUES (84045, '2020-03-20');
+INSERT INTO covid_cases VALUES (100106, '2020-03-31');
+INSERT INTO covid_cases VALUES (17015, '2020-04-04');
+INSERT INTO covid_cases VALUES (36035, '2020-04-11');
+INSERT INTO covid_cases VALUES (50099, '2020-04-13');
+INSERT INTO covid_cases VALUES (87045, '2020-04-22');
+INSERT INTO covid_cases VALUES (101101, '2020-04-30');
+INSERT INTO covid_cases VALUES (40015, '2020-05-01');
+INSERT INTO covid_cases VALUES (54035, '2020-05-09');
+INSERT INTO covid_cases VALUES (71099, '2020-05-14');
+INSERT INTO covid_cases VALUES (82045, '2020-05-21');
+INSERT INTO covid_cases VALUES (90103, '2020-05-25');
+INSERT INTO covid_cases VALUES (99103, '2020-05-31');
+INSERT INTO covid_cases VALUES (11015, '2020-06-03');
+INSERT INTO covid_cases VALUES (28035, '2020-06-10');
+INSERT INTO covid_cases VALUES (38099, '2020-06-14');
+INSERT INTO covid_cases VALUES (45045, '2020-06-20');
+INSERT INTO covid_cases VALUES (36033, '2020-07-09');
+INSERT INTO covid_cases VALUES (40011, '2020-07-23');
+INSERT INTO covid_cases VALUES (25001, '2020-08-12');
+INSERT INTO covid_cases VALUES (29990, '2020-08-26');
+INSERT INTO covid_cases VALUES (20112, '2020-09-04');
+INSERT INTO covid_cases VALUES (43991, '2020-09-18');
+INSERT INTO covid_cases VALUES (51002, '2020-09-29');
+INSERT INTO covid_cases VALUES (26587, '2020-10-25');
+INSERT INTO covid_cases VALUES (11000, '2020-11-07');
+INSERT INTO covid_cases VALUES (35002, '2020-11-16');
+INSERT INTO covid_cases VALUES (56010, '2020-11-28');
+INSERT INTO covid_cases VALUES (15099, '2020-12-02');
+INSERT INTO covid_cases VALUES (38042, '2020-12-11');
+INSERT INTO covid_cases VALUES (73030, '2020-12-26');
+
+
+
+Solution
+
+
+WITH cte AS (
+SELECT 
+	DATEPART(MONTH, dates) AS month_num,
+	COUNT(cases_reported) AS monthly_cases
+FROM covid_cases
+GROUP BY DATEPART(MONTH, dates)
+), cte_monthly AS (
+SELECT 
+	month_num, monthly_cases, 
+	SUM(monthly_cases) OVER(ORDER BY month_num) AS total_cases
+FROM cte
+), cte_prev AS (
+SELECT 
+	*,
+	LAG(total_cases, 1) OVER(ORDER BY month_num) AS prev_month
+FROM cte_monthly
+)
+SELECT 
+	month_num,
+	CASE WHEN month_num > 1 THEN CAST(CAST(ROUND((100.0 * monthly_cases / prev_month), 1) AS float) AS VARCHAR(20))
+	ELSE '-'
+	END AS perc
+FROM cte_prev
+
+
+
+We need to compare current month's cases with total_cases till last month.
+Firsr gget all cases in the month using cte.
+Then with cte_monthly we get cases from first month till th current mnth for each month. Then prev_month gives the previous valued which we need to compare.
+THe divide 2 values and get final result.

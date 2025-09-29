@@ -1,0 +1,55 @@
+-- Find out the employees who attended all company events
+
+drop table if exists comp_employees;
+create table comp_employees
+(
+	id			int,
+	name		varchar(50)
+);
+
+insert into comp_employees values(1, 'Lewis');
+insert into comp_employees values(2, 'Max');
+insert into comp_employees values(3, 'Charles');
+insert into comp_employees values(4, 'Sainz');
+
+
+drop table if exists comp_events;
+create table comp_events
+(
+	event_name		varchar(50),
+	emp_id			int,
+	dates			date
+);
+
+INSERT INTO comp_events VALUES ('Product launch', 1, '2024-03-01');
+INSERT INTO comp_events VALUES ('Product launch', 3, '2024-03-01');
+INSERT INTO comp_events VALUES ('Product launch', 4, '2024-03-01');
+INSERT INTO comp_events VALUES ('Conference', 2, '2024-03-02');
+INSERT INTO comp_events VALUES ('Conference', 2, '2024-03-03');
+INSERT INTO comp_events VALUES ('Conference', 3, '2024-03-02');
+INSERT INTO comp_events VALUES ('Conference', 4, '2024-03-02');
+INSERT INTO comp_events VALUES ('Training', 3, '2024-03-04');
+INSERT INTO comp_events VALUES ('Training', 2, '2024-03-04');
+INSERT INTO comp_events VALUES ('Training', 4, '2024-03-04');
+INSERT INTO comp_events VALUES ('Training', 4, '2024-03-05');
+
+
+select * from comp_employees;
+select * from comp_events;
+
+
+Output
+
+name	num_events
+Charles	3
+Sainz	3
+
+
+Solution
+
+SELECT  e.id, e.name as employee_name, COUNT(distinct event_name) as no_of_events
+FROM events ev
+join employees e on e.id=ev.emp_id
+GROUP BY e.id, e.name
+HAVING COUNT(distinct event_name) = (SELECT COUNT(distinct event_name) FROM events);
+

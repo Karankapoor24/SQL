@@ -1,0 +1,93 @@
+-- Given is user login table for , identify dates where a user has logged in for 5 or more consecutive days.
+-- Return the user id, start date, end date and no of consecutive days, sorting based on user id.
+-- If a user logged in consecutively 5 or more times but not spanning 5 days then they should be excluded.
+
+/*
+-- Output:
+USER_ID		START_DATE		END_DATE		CONSECUTIVE_DAYS
+1			10/03/2024		14/03/2024		5
+1 			25/03/2024		30/03/2024		6
+3 			01/03/2024		05/03/2024		5
+*/
+
+
+drop table if exists user_login;
+create table user_login
+(
+	user_id		int,
+	login_date	date
+);
+insert into user_login values(1, convert(datetime,'01/03/2024',103));
+insert into user_login values(1, convert(datetime,'02/03/2024',103));
+insert into user_login values(1, convert(datetime,'03/03/2024',103));
+insert into user_login values(1, convert(datetime,'04/03/2024',103));
+insert into user_login values(1, convert(datetime,'06/03/2024',103));
+insert into user_login values(1, convert(datetime,'10/03/2024',103));
+insert into user_login values(1, convert(datetime,'11/03/2024',103));
+insert into user_login values(1, convert(datetime,'12/03/2024',103));
+insert into user_login values(1, convert(datetime,'13/03/2024',103));
+insert into user_login values(1, convert(datetime,'14/03/2024',103));
+insert into user_login values(1, convert(datetime,'20/03/2024',103));
+insert into user_login values(1, convert(datetime,'25/03/2024',103));
+insert into user_login values(1, convert(datetime,'26/03/2024',103));
+insert into user_login values(1, convert(datetime,'27/03/2024',103));
+insert into user_login values(1, convert(datetime,'28/03/2024',103));
+insert into user_login values(1, convert(datetime,'29/03/2024',103));
+insert into user_login values(1, convert(datetime,'30/03/2024',103));
+insert into user_login values(2, convert(datetime,'01/03/2024',103));
+insert into user_login values(2, convert(datetime,'02/03/2024',103));
+insert into user_login values(2, convert(datetime,'03/03/2024',103));
+insert into user_login values(2, convert(datetime,'04/03/2024',103));
+insert into user_login values(3, convert(datetime,'01/03/2024',103));
+insert into user_login values(3, convert(datetime,'02/03/2024',103));
+insert into user_login values(3, convert(datetime,'03/03/2024',103));
+insert into user_login values(3, convert(datetime,'04/03/2024',103));
+insert into user_login values(3, convert(datetime,'04/03/2024',103));
+insert into user_login values(3, convert(datetime,'04/03/2024',103));
+insert into user_login values(3, convert(datetime,'05/03/2024',103));
+insert into user_login values(4, convert(datetime,'01/03/2024',103));
+insert into user_login values(4, convert(datetime,'02/03/2024',103));
+insert into user_login values(4, convert(datetime,'03/03/2024',103));
+insert into user_login values(4, convert(datetime,'04/03/2024',103));
+insert into user_login values(4, convert(datetime,'04/03/2024',103));
+
+
+select * from user_login;
+
+
+Solution
+
+
+WITH cte AS (
+SELECT
+	*,
+	DATEADD(DAY, -1 * DENSE_RANK() OVER(PARTITION BY user_id ORDER BY login_date), login_date) AS grp
+FROM user_login
+), all_data AS (
+SELECT
+	user_id, MIN(login_date) AS start_date, MAX(login_date) AS end_date, DATEDIFF(DAY, MIN(login_date), MAX(login_date)) + 1 AS consecutive_logins
+FROM cte
+GROUP BY user_id, grp
+)
+SELECT * FROM all_data 
+WHERE consecutive_logins >= 5
+
+
+WITH cte AS (
+SELECT
+	*,
+	DATEADD(DAY, -1 * DENSE_RANK() OVER(PARTITION BY user_id ORDER BY login_date), login_date) AS grp
+FROM user_login
+)
+SELECT
+	user_id, MIN(login_date) AS start_date, MAX(login_date) AS end_date, DATEDIFF(DAY, MIN(login_date), MAX(login_date)) + 1 AS consecutive_logins
+FROM cte
+GROUP BY user_id, grp
+HAVING  DATEDIFF(DAY, MIN(login_date), MAX(login_date)) + 1 >= 5
+
+
+NOTE: Why DENSE_RANK not ROW_NUMBER. because if a user logins multiple times in a single day we need to consider it as 1 login.
+	  Why DATEDIFF(DAY, MIN(login_date), MAX(login_date)) + 1 why not count of records per group - Count will count all records in group so if a user has
+	  3 logins in a day it will add so better way is find the number of days between start_date and end_date and to include start_date also add 1
+
+
