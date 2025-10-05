@@ -1,0 +1,56 @@
+-- Find length of comma seperated values in items field
+
+drop table if exists item;
+
+create table item
+(
+	id		int,
+	items	varchar(50)
+);
+
+insert into item values(1, '22,122,1022');
+insert into item values(2, ',6,0,9999');
+insert into item values(3, '100,2000,2');
+insert into item values(4, '4,44,444,4444');
+
+select * from item;
+
+
+Input
+
+
+id	items
+1	22,122,1022
+2	,6,0,9999
+3	100,2000,2
+4	4,44,444,4444
+
+
+output
+
+
+id	lengths
+1	2,3,4
+2	0,1,1,4
+3	3,4,1
+4	1,2,3,4
+
+
+Solution
+
+
+SELECT 
+	id, STRING_AGG(len(value), ',') AS lengths
+FROM item
+CROSS APPLY STRING_SPLIT(items, ',')
+GROUP BY id
+
+
+Explanation
+
+STRING_SPLIT converts string to array like from 22,122,1022 we get [22, 122, 1022] and creates a column with name value.
+CROSS APPLY matches each row id to all the elements of value arrary like -  1    22
+																		    1    122
+																			1    1022
+Then simply fetch the lengths and combine using STRING_AGG.
+

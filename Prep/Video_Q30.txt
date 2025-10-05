@@ -1,0 +1,126 @@
+/*
+PROBLEM STATEMENT: Given tables represent the marks scored by engineering students.
+Create a report to display the following results for each student.
+  - Student_id, Student name
+  - Total Percentage of all marks
+  - Failed subjects (must be comma seperated values in case of multiple failed subjects)
+  - Result (if percentage >= 70% then 'First Class', if >= 50% & <=70% then 'Second class', if <=50% then 'Third class' else 'Fail'.
+  			The result should be Fail if a students fails in any subject irrespective of the percentage marks)
+	
+	*** The sequence of subjects in student_marks table match with the sequential id from subjects table.
+	*** Students have the option to choose either 4 or 5 subjects only.
+*/
+
+drop table if exists student_marks;
+drop table if exists students;
+drop table if exists subjects;
+
+create table students
+(
+	roll_no		varchar(20) primary key,
+	name		varchar(30)		
+);
+insert into students values('2GR5CS011', 'Maryam');
+insert into students values('2GR5CS012', 'Rose');
+insert into students values('2GR5CS013', 'Alice');
+insert into students values('2GR5CS014', 'Lilly');
+insert into students values('2GR5CS015', 'Anna');
+insert into students values('2GR5CS016', 'Zoya');
+
+
+create table student_marks
+(
+	student_id		varchar(20) primary key references students(roll_no),
+	subject1		int,
+	subject2		int,
+	subject3		int,
+	subject4		int,
+	subject5		int,
+	subject6		int
+);
+insert into student_marks values('2GR5CS011', 75, NULL, 56, 69, 82, NULL);
+insert into student_marks values('2GR5CS012', 57, 46, 32, 30, NULL, NULL);
+insert into student_marks values('2GR5CS013', 40, 52, 56, NULL, 31, 40);
+insert into student_marks values('2GR5CS014', 65, 73, NULL, 81, 33, 41);
+insert into student_marks values('2GR5CS015', 98, NULL, 94, NULL, 90, 20);
+insert into student_marks values('2GR5CS016', NULL, 98, 98, 81, 84, 89);
+
+
+create table subjects
+(
+	id				varchar(20) primary key,
+	name			varchar(30),
+	pass_marks  	int check (pass_marks>=30)
+);
+insert into subjects values('S1', 'Mathematics', 40);
+insert into subjects values('S2', 'Algorithms', 35);
+insert into subjects values('S3', 'Computer Networks', 35);
+insert into subjects values('S4', 'Data Structure', 40);
+insert into subjects values('S5', 'Artificial Intelligence', 30);
+insert into subjects values('S6', 'Object Oriented Programming', 35);
+
+
+select * from students;
+select * from student_marks;
+select * from subjects;
+
+
+
+Solution
+
+
+WITH all_marks AS (
+SELECT student_id, subject1 AS marks, 'S1' AS code FROM student_marks
+UNION ALL
+SELECT student_id, subject2, 'S2' AS code FROM student_marks
+UNION ALL
+SELECT student_id, subject3, 'S3' AS code FROM student_marks
+UNION ALL
+SELECT student_id, subject4, 'S4' AS code FROM student_marks
+UNION ALL
+SELECT student_id, subject5, 'S5' AS code FROM student_marks
+UNION ALL
+SELECT student_id, subject6, 'S6' AS code FROM student_marks
+), final_data AS (
+SELECT
+	m.student_id, m.marks, s.id, s.name, s.pass_marks,
+	CASE WHEN m.marks >= s.pass_marks THEN 0 ELSE 1 END AS fail_flag
+FROM all_marks m
+JOIN subjects s
+ON m.code = s.id
+WHERE marks IS NOT NULL
+), failed_students AS (
+SELECT
+	student_id, 
+	SUM(fail_flag) AS failed_flag,
+	STRING_AGG((CASE WHEN fail_flag = 1 THEN name END), ',') AS failed_subs
+FROM final_data 
+GROUP BY student_id
+), perc_marks AS (
+SELECT
+	student_id, CAST((SUM(marks) * 1.0 / COUNT(marks)) AS DECIMAL(4,2)) AS Percentage_Marks
+FROM final_data
+GROUP BY student_id
+)
+SELECT
+	p.roll_no AS student_id, p.name, 
+	q.Percentage_Marks,
+	CASE WHEN r.failed_subs IS NULL THEN '-' ELSE r.failed_subs END AS failed_subjects,
+	CASE WHEN r.failed_subs IS NOT NULL THEN 'Fail'
+		 WHEN r.failed_subs IS  NULL AND q.Percentage_Marks >= 70 THEN 'First_Class'
+		 WHEN r.failed_subs IS  NULL AND q.Percentage_Marks >= 50 AND q.Percentage_Marks < 70 THEN 'Second_Class'
+		 WHEN r.failed_subs IS  NULL AND q.Percentage_Marks < 50 THEN 'Third_Class'
+	END AS result
+FROM students p
+JOIN perc_marks q
+ON p.roll_no = q.student_id
+JOIN failed_students r
+ON p.roll_no = r.student_id
+
+
+Explanation 
+With all_marks cte converting the subject marks data from columns to individual row.
+As we get the data now in rows, comparing marks with passing marks and assigning a flag that tells whether student passed in subject or not in final_data cte
+In failed_students counting in how many subject students failed and using string_agg getting the list of names of failed subject
+In perc_marks simply calculating the percentage 
+And finally joining distinct ctes and getting result
