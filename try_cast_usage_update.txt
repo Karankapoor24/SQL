@@ -1,0 +1,39 @@
+-- Usage of try_cast
+
+CREATE TABLE EMPLOYEE_tc (
+  empId varchar(10),
+  name varchar(15),
+  dept varchar(10),
+  join_date varchar(10)
+);
+
+-- insert
+INSERT INTO EMPLOYEE_tc VALUES (1, 'Clark', 'Sales', '2025-01-01');
+INSERT INTO EMPLOYEE_tc VALUES (2, 'Dave', 'Accounts', '2025-15-05');
+INSERT INTO EMPLOYEE_tc VALUES ('3a', 'Ava', 'Sales','2025-12-16');
+
+
+
+-- fetch
+-- insert into silver
+SELECT
+try_cast(empId as int) as empId
+, name
+, dept
+, try_cast(join_date as date) as join_date
+from EMPLOYEE_tc
+where try_cast(empId as int) is not null
+and try_cast(join_date as date) is not null
+
+-- insert into bad_data
+SELECT
+empId
+, name
+, dept
+, join_date
+, case when try_cast(empId as int) is null
+then 'bad_empid' else 'bad_join_date' end as
+reject_reason
+from EMPLOYEE_tc
+where try_cast(empId as int) is null
+or try_cast(join_date as date) is null

@@ -1,0 +1,84 @@
+/*
+Given a transactions table, identify all groups of users involved in a circular money flow where:
+
+✔ Money starts from User A
+✔ Passes through one or more intermediate users
+✔ Returns back to User A
+✔ All transactions occur within 1 hour
+✔ Amount remains constant throughout the cycle
+✔ No user repeats in the path except the starting user
+*/
+
+
+create table transactions (
+    transaction_id int primary key,
+    sender_id varchar(3) not null,
+    receiver_id varchar(3)  not null,
+    amount int not null,
+    transaction_time datetime not null
+);
+
+
+insert into transactions values
+(1, 101, 102, 500, '2025-01-01 09:00:00'),
+(2, 102, 103, 500, '2025-01-01 09:10:00'),
+(3, 103, 101, 500, '2025-01-01 09:20:00'),
+(4, 201, 202, 1000, '2025-01-01 10:00:00'),
+(5, 202, 203, 1000, '2025-01-01 10:05:00'),
+(6, 203, 204, 1000, '2025-01-01 10:10:00'),
+(7, 301, 302, 1000, '2025-01-01 10:00:00'),
+(8, 302, 301, 1000, '2025-01-01 10:05:00'),
+(9, 401, 402, 500, '2025-01-01 09:00:00'),
+(10, 402, 403, 500, '2025-01-01 09:10:00'),
+(11, 403, 404, 500, '2025-01-01 09:20:00'),
+(12, 404, 401, 500, '2025-01-01 09:25:00');
+
+
+
+-- Input
+
+transaction_id	sender_id		receiver_id		amount		transaction_time
+1				101				102				500			2025-01-01 09:00:00.000
+2				102				103				500			2025-01-01 09:10:00.000
+3				103				101				500			2025-01-01 09:20:00.000
+4				201				202				1000		2025-01-01 10:00:00.000
+5				202				203				1000		2025-01-01 10:05:00.000
+6				203				204				1000		2025-01-01 10:10:00.000
+7				301				302				1000		2025-01-01 10:00:00.000
+8				302				301				1000		2025-01-01 10:05:00.000
+9				401				402				500			2025-01-01 09:00:00.000
+10				402				403				500			2025-01-01 09:10:00.000
+11				403				404				500			2025-01-01 09:20:00.000
+12				404				401				500			2025-01-01 09:25:00.000
+
+
+-- Expected Output
+
+transaction_id	start_user		sender_id		receiver_id		amount			start_time					transaction_time			cycle								cycle_length
+12				401				404				401				500				2025-01-01 09:00:00.000		2025-01-01 09:25:00.000		401 -> 402 -> 403 -> 404 -> 401		4
+8				301				302				301				1000			2025-01-01 10:00:00.000		2025-01-01 10:05:00.000		301 -> 302 -> 301					2
+3				101				103				101				500				2025-01-01 09:00:00.000		2025-01-01 09:20:00.000		101 -> 102 -> 103 -> 101			3
+
+
+-- Solution 
+
+with cte as (
+select  
+	transaction_id, sender_id as start_user, sender_id, receiver_id, amount, transaction_time as start_time, transaction_time,
+	CAST(CONCAT(sender_id, ' -> ', receiver_id) AS VARCHAR(100)) as cycle, 1 as cycle_length
+from transactions
+
+union all
+
+select 
+	t.transaction_id, cte.start_user ,t.sender_id, t.receiver_id, t.amount, cte.start_time, t.transaction_time,
+	CAST(concat(cte.cycle, ' -> ', t.receiver_id) AS VARCHAR(100)), cte.cycle_length+1
+from cte
+inner join transactions t
+on cte.receiver_id = t.sender_id
+and cte.amount = t.amount
+and t.transaction_time > cte.start_time
+and datediff(minute, cte.start_time, t.transaction_time) <= 60
+)
+select * from cte
+where start_user = receiver_id
